@@ -8,7 +8,7 @@ const unsigned char stressInputTable[] =
 };
 
 //tab40682
-const unsigned char signInputTable1[]={
+ unsigned char signInputTable1[]={
     ' ', '.', '?', ',', '-', 'I', 'I', 'E',
     'A', 'A', 'A', 'A', 'U', 'A', 'I', 'E',
     'U', 'O', 'R', 'L', 'W', 'Y', 'W', 'R',
@@ -23,7 +23,7 @@ const unsigned char signInputTable1[]={
 };
 
 //tab40763
-const unsigned char signInputTable2[] =
+ unsigned char signInputTable2[] =
 {
     '*', '*', '*', '*', '*', 'Y', 'H', 'H',
     'E', 'A', 'H', 'O', 'H', 'X', 'X', 'R',

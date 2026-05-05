@@ -46,15 +46,143 @@ void PrintOutput(
     printf("===========================================\n");
     printf("Final data for speech output:\n\n");
     int i = 0;
-    printf(" flags ampl1 freq1 ampl2 freq2 ampl3 freq3 pitch\n");
-    printf("------------------------------------------------\n");
+    printf("index flags ampl1 freq1 ampl2 freq2 ampl3 freq3 pitch\n");
+    printf("------------------------------------------------------\n");
     while(i < 255)
     {
-        printf("%5i %5i %5i %5i %5i %5i %5i %5i\n", flag[i], a1[i], f1[i], a2[i], f2[i], a3[i], f3[i], p[i]);
+        printf("%5i %5i %5i %5i %5i %5i %5i %5i %5i\n", i, flag[i], a1[i], f1[i], a2[i], f2[i], a3[i], f3[i], p[i]);
         i++;
     }
     printf("===========================================\n");
 
+}
+
+void PrintOutputSize(
+    int size,
+    unsigned char *flag,
+    unsigned char *f1,
+    unsigned char *f2,
+    unsigned char *f3,
+    unsigned char *a1,
+    unsigned char *a2,
+    unsigned char *a3,
+    unsigned char *p)
+{
+    printf("===========================================\n");
+    printf("Final data for speech output:\n\n");
+    int i = 0;
+    printf("index flags ampl1 freq1 ampl2 freq2 ampl3 freq3 pitch\n");
+    printf("-----------------------------------------------------\n");
+    while(i < size)
+    {
+        printf("%5i %5i %5i %5i %5i %5i %5i %5i %5i\n", i, flag[i], a1[i], f1[i], a2[i], f2[i], a3[i], f3[i], p[i]);
+        i++;
+    }
+    printf("===========================================\n");
+}
+
+void PrintOutputLine(
+    int size,
+    unsigned char *flag,
+    unsigned char *f1,
+    unsigned char *f2,
+    unsigned char *f3,
+    unsigned char *a1,
+    unsigned char *a2,
+    unsigned char *a3,
+    unsigned char *p)
+{
+    printf("%d", size);
+    
+    // freq1
+    printf("|");
+    
+    for (int i = 0; i < size; i++) {
+        if (i != 0) {
+            printf(",");
+        }
+        
+        printf("%d", f1[i]);
+    }
+    
+    // freq2
+    printf("|");
+    
+    for (int i = 0; i < size; i++) {
+        if (i != 0) {
+            printf(",");
+        }
+        
+        printf("%d", f2[i]);
+    }
+    
+    // freq3
+    printf("|");
+    
+    for (int i = 0; i < size; i++) {
+        if (i != 0) {
+            printf(",");
+        }
+        
+        printf("%d", f3[i]);
+    }
+    
+    // ampl1
+    printf("|");
+    
+    for (int i = 0; i < size; i++) {
+        if (i != 0) {
+            printf(",");
+        }
+        
+        printf("%d", a1[i]);
+    }
+    
+    // ampl2
+    printf("|");
+    
+    for (int i = 0; i < size; i++) {
+        if (i != 0) {
+            printf(",");
+        }
+        
+        printf("%d", a2[i]);
+    }
+    
+    // ampl3
+    printf("|");
+    
+    for (int i = 0; i < size; i++) {
+        if (i != 0) {
+            printf(",");
+        }
+        
+        printf("%d", a3[i]);
+    }
+    
+    // flags
+    printf("|");
+    
+    for (int i = 0; i < size; i++) {
+        if (i != 0) {
+            printf(",");
+        }
+        
+        printf("%d", flag[i]);
+    }
+    
+    // pitch
+    printf("|");
+    
+    for (int i = 0; i < size; i++) {
+        if (i != 0) {
+            printf(",");
+        }
+        
+        printf("%d", p[i]);
+    }
+    
+    // printf("\n");
 }
 
 extern unsigned char GetRuleByte(unsigned short mem62, unsigned char Y);

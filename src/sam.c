@@ -190,6 +190,7 @@ void PrepareOutput()
             A = 255;
             phonemeIndexOutput[Y] = 255;
             Render();
+            printf("\n");
             return;
         }
         if (A == 254)
@@ -296,7 +297,7 @@ void CopyStress()
         // exit at end of buffer
         if (Y == 255) return;
 
-        // if CONSONANT_FLAG set, skip - only vowels get stress
+        // if CONSONANT_FLAG not set, skip - only vowels get stress
         if ((flags[Y] & 64) == 0) {pos++; continue;}
         // get the next phoneme
         Y = phonemeindex[pos+1];
@@ -304,7 +305,7 @@ void CopyStress()
         {
             pos++; continue;
         } else
-        // if the following phoneme is a vowel, skip
+        // if the following phoneme is not a vowel, skip
         if ((flags[Y] & 128) == 0)  {pos++; continue;}
 
         // get the stress value at the next position
@@ -543,6 +544,18 @@ void SetPhonemeLength()
     }
 }
 
+void Clean() {
+    do
+    {
+        A = phonemeindex[X];
+        if (A > 80)
+        {
+            phonemeindex[X] = 255;
+            break;
+        }
+        X++;
+    } while (X != 0);
+}
 
 void Code41240()
 {
@@ -587,18 +600,19 @@ void Code41240()
 
 // Rewrites the phonemes using the following rules:
 //
-//       <DIPHTONG ENDING WITH WX> -> <DIPHTONG ENDING WITH WX> WX
-//       <DIPHTONG NOT ENDING WITH WX> -> <DIPHTONG NOT ENDING WITH WX> YX
+//       <DIPHTHONG ENDING WITH WX> -> <DIPHTHONG ENDING WITH WX> WX
+//       <DIPHTHONG NOT ENDING WITH WX> -> <DIPHTHONG NOT ENDING WITH WX> YX
 //       UL -> AX L
 //       UM -> AX M
+//       UN -> AX N
 //       <STRESSED VOWEL> <SILENCE> <STRESSED VOWEL> -> <STRESSED VOWEL> <SILENCE> Q <VOWEL>
 //       T R -> CH R
 //       D R -> J R
 //       <VOWEL> R -> <VOWEL> RX
 //       <VOWEL> L -> <VOWEL> LX
 //       G S -> G Z
-//       K <VOWEL OR DIPHTONG NOT ENDING WITH IY> -> KX <VOWEL OR DIPHTONG NOT ENDING WITH IY>
-//       G <VOWEL OR DIPHTONG NOT ENDING WITH IY> -> GX <VOWEL OR DIPHTONG NOT ENDING WITH IY>
+//       K <VOWEL OR DIPHTHONG NOT ENDING WITH IY> -> KX <VOWEL OR DIPHTHONG NOT ENDING WITH IY>
+//       G <VOWEL OR DIPHTHONG NOT ENDING WITH IY> -> GX <VOWEL OR DIPHTHONG NOT ENDING WITH IY>
 //       S P -> S B
 //       S T -> S D
 //       S K -> S G
@@ -644,12 +658,12 @@ void Parser2()
         Y = A;
 
 // RULE:
-//       <DIPHTONG ENDING WITH WX> -> <DIPHTONG ENDING WITH WX> WX
-//       <DIPHTONG NOT ENDING WITH WX> -> <DIPHTONG NOT ENDING WITH WX> YX
+//       <DIPHTHONG ENDING WITH WX> -> <DIPHTHONG ENDING WITH WX> WX
+//       <DIPHTHONG NOT ENDING WITH WX> -> <DIPHTHONG NOT ENDING WITH WX> YX
 // Example: OIL, COW
 
 
-// Check for DIPHTONG
+// Check for DIPHTHONG
         if ((flags[A] & 16) == 0) goto pos41457;
 
 // Not a diphthong. Get the stress
@@ -663,8 +677,8 @@ void Parser2()
         //pos41443:
 // Insert at WX or YX following, copying the stress
 
-        if (debug) if (A==20) printf("RULE: insert WX following diphtong NOT ending in IY sound\n");
-        if (debug) if (A==21) printf("RULE: insert YX following diphtong ending in IY sound\n");
+        if (debug) if (A==20) printf("RULE: insert WX following diphthong NOT ending in IY sound\n");
+        if (debug) if (A==21) printf("RULE: insert YX following diphthong ending in IY sound\n");
         Insert(pos+1, A, mem59, mem58);
         X = pos;
 // Jump to ???
@@ -870,7 +884,7 @@ pos41611:
         }
 
 // RULE:
-//             K <VOWEL OR DIPHTONG NOT ENDING WITH IY> -> KX <VOWEL OR DIPHTONG NOT ENDING WITH IY>
+//             K <VOWEL OR DIPHTHONG NOT ENDING WITH IY> -> KX <VOWEL OR DIPHTHONG NOT ENDING WITH IY>
 // Example: COW
 
 // Is current phoneme K?
@@ -882,9 +896,9 @@ pos41611:
             if (Y == 255) phonemeindex[pos] = 75; // ML : prevents an index out of bounds problem
             else
             {
-// VOWELS AND DIPHTONGS ENDING WITH IY SOUND flag set?
+// VOWELS AND DIPHTHONGS ENDING WITH IY SOUND flag set?
                 A = flags[Y] & 32;
-                if (debug) if (A==0) printf("RULE: K <VOWEL OR DIPHTONG NOT ENDING WITH IY> -> KX <VOWEL OR DIPHTONG NOT ENDING WITH IY>\n");
+                if (debug) if (A==0) printf("RULE: K <VOWEL OR DIPHTHONG NOT ENDING WITH IY> -> KX <VOWEL OR DIPHTHONG NOT ENDING WITH IY>\n");
 // Replace with KX
                 if (A == 0) phonemeindex[pos] = 75;  // 'KX'
             }
@@ -892,7 +906,7 @@ pos41611:
         else
 
 // RULE:
-//             G <VOWEL OR DIPHTONG NOT ENDING WITH IY> -> GX <VOWEL OR DIPHTONG NOT ENDING WITH IY>
+//             G <VOWEL OR DIPHTHONG NOT ENDING WITH IY> -> GX <VOWEL OR DIPHTHONG NOT ENDING WITH IY>
 // Example: GO
 
 
@@ -908,10 +922,10 @@ pos41611:
                 pos++; continue;
             }
             else
-// If diphtong ending with YX, move continue processing next phoneme
+// If diphthong ending with YX, move continue processing next phoneme
             if ((flags[index] & 32) != 0) {pos++; continue;}
 // replace G with GX and continue processing next phoneme
-            if (debug) printf("RULE: G <VOWEL OR DIPHTONG NOT ENDING WITH IY> -> GX <VOWEL OR DIPHTONG NOT ENDING WITH IY>\n");
+            if (debug) printf("RULE: G <VOWEL OR DIPHTHONG NOT ENDING WITH IY> -> GX <VOWEL OR DIPHTHONG NOT ENDING WITH IY>\n");
             phonemeindex[pos] = 63; // 'GX'
             pos++;
             continue;
@@ -1056,7 +1070,7 @@ pos41812:
 //         <VOWEL> <UNVOICED CONSONANT> - increase vowel by 1/2 + 1
 //         <NASAL> <STOP CONSONANT> - set nasal = 5, consonant = 6
 //         <VOICED STOP CONSONANT> {optional silence} <STOP CONSONANT> - shorten both to 1/2 + 1
-//         <LIQUID CONSONANT> <DIPHTONG> - decrease by 2
+//         <LIQUID CONSONANT> <DIPHTHONG> - decrease by 2
 
 
 //void Code48619()
@@ -1382,8 +1396,8 @@ if (debug) printf("phoneme %d (%c%c) length %d\n", debugX-1, signInputTable1[pho
 
         // WH, R*, L*, W*, Y*, Q*, Z*, ZH, V*, DH, J*, **,
 
-        // RULE: <VOICED NON-VOWEL> <DIPHTONG>
-        //       Decrease <DIPHTONG> by 2
+        // RULE: <VOICED NON-VOWEL> <DIPHTHONG>
+        //       Decrease <DIPHTHONG> by 2
 
         // liquic consonant?
         if ((flags2[index] & 16) != 0)
@@ -1395,9 +1409,9 @@ if (debug) printf("phoneme %d (%c%c) length %d\n", debugX-1, signInputTable1[pho
 
             // prior phoneme a stop consonant>
             if((flags[index] & 2) != 0) {
-                             // Rule: <LIQUID CONSONANT> <DIPHTONG>
+                             // Rule: <LIQUID CONSONANT> <DIPHTHONG>
 
-if (debug) printf("RULE: <LIQUID CONSONANT> <DIPHTONG> - decrease by 2\n");
+if (debug) printf("RULE: <LIQUID CONSONANT> <DIPHTHONG> - decrease by 2\n");
 if (debug) printf("PRE\n");
 if (debug) printf("phoneme %d (%c%c) length %d\n", X, signInputTable1[phonemeindex[X]], signInputTable2[phonemeindex[X]], phonemeLength[X]);
 

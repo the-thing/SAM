@@ -440,6 +440,13 @@ do
     } while(phase2 != 0);
     mem44++;
 } while(mem44 != 0);
+    
+    int frameCount = X;
+    
+    // printf("\nCREATE FRAMES\n");
+    // PrintOutputLine(frameCount, sampledConsonantFlag, frequency1, frequency2, frequency3, amplitude1, amplitude2, amplitude3, pitches);
+    // PrintOutputSize(frameCount, sampledConsonantFlag, frequency1, frequency2, frequency3, amplitude1, amplitude2, amplitude3, pitches);
+    
 // -------------------
 //pos47694:
 
@@ -624,6 +631,8 @@ do
         phase3 = mem49 - phase1; // what is mem49
         A = phase1 + phase2; // total transition?
         mem38 = A;
+        
+        // printf("blendStartFrame=%d, blendEndFrame=%d\n", phase3, speedcounter);
 
         X = A;
         X -= 2;
@@ -655,6 +664,9 @@ do
                 mem36 = phonemeLengthOutput[mem44] >> 1;
                 // half the width of the next phoneme
                 mem37 = phonemeLengthOutput[mem44+1] >> 1;
+                
+                // printf("current half = %d, next half = %d\n", mem36, mem37);
+                
                 // sum the values
                 mem40 = mem36 + mem37; // length of both halves
                 mem37 += mem49; // center of next phoneme
@@ -672,8 +684,12 @@ do
                 Y = phase3;
                 // value to interpolate from
                 mem53 = A - Read(mem47, phase3);
+                
+                // if (mem47 == 169) {
+                //     printf("read index %d - %d\n", speedcounter, Read(mem47, speedcounter));
+                // }
             }
-
+            
             //Code47503(mem40);
             // ML : Code47503 is division with remainder, and mem50 gets the sign
 
@@ -688,7 +704,11 @@ do
             X = mem40; // number of frames to interpolate over
             Y = phase3; // starting frame
 
-
+            // if (mem47 == 169) {
+            //     printf("startFrame=%d,endFrame=%d,interpolationLength=%d\n", phase3, speedcounter, mem40);
+            //     printf("deltaFraction=%d,deltaStep=%d,deltaSign=%d\n",mem51, mem53, mem50);
+            // }
+            
             // linearly interpolate values
 
             mem56 = 0;
@@ -715,6 +735,7 @@ do
                         if(mem48 != 0) mem48++;
                     } else mem48--;
                 }
+                
                 //pos47945:
                 Write(mem47, Y, mem48);
             } //while No. 3
@@ -734,7 +755,12 @@ do
     // add the length of this phoneme
     mem48 = mem49 + phonemeLengthOutput[mem44];
 
-
+    // printf("AFTER CREATE TRANSITIONS\n");
+    // PrintOutputSize(frameCount, sampledConsonantFlag, frequency1, frequency2, frequency3, amplitude1, amplitude2, amplitude3, pitches);
+    PrintOutputLine(frameCount, sampledConsonantFlag, frequency1, frequency2, frequency3, amplitude1, amplitude2, amplitude3, pitches);
+    // PrintOutput(sampledConsonantFlag, frequency1, frequency2, frequency3, amplitude1, amplitude2, amplitude3, pitches);
+    
+    
 // ASSIGN PITCH CONTOUR
 //
 // This subtracts the F1 frequency from the pitch to create a
@@ -888,58 +914,6 @@ pos48159:
         RenderSample(&mem66);
         goto pos48159;
     } //while
-
-
-    // The following code is never reached. It's left over from when
-    // the voiced sample code was part of this loop, instead of part
-    // of RenderSample();
-
-    //pos48315:
-    int tempA;
-    phase1 = A ^ 255;
-    Y = mem66;
-    do
-    {
-        //pos48321:
-
-        mem56 = 8;
-        A = Read(mem47, Y);
-
-        //pos48327:
-        do
-        {
-            //48327: ASL A
-            //48328: BCC 48337
-            tempA = A;
-            A = A << 1;
-            if ((tempA & 128) != 0)
-            {
-                X = 26;
-                // mem[54296] = X;
-                bufferpos += 150;
-                buffer[bufferpos/50] = (X & 15)*16;
-            } else
-            {
-                //mem[54296] = 6;
-                X=6;
-                bufferpos += 150;
-                buffer[bufferpos/50] = (X & 15)*16;
-            }
-
-            for(X = wait2; X>0; X--); //wait
-            mem56--;
-        } while(mem56 != 0);
-
-        Y++;
-        phase1++;
-
-    } while (phase1 != 0);
-    //  if (phase1 != 0) goto pos48321;
-    A = 1;
-    mem44 = 1;
-    mem66 = Y;
-    Y = mem49;
-    return;
 }
 
 
