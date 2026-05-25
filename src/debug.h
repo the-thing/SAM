@@ -37,4 +37,6 @@ void PrintOutputLine(
 
 void PrintRule(int offset);
 
+void PrintBuffer(const char* buffer, int size);
+
 #endif

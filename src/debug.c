@@ -200,3 +200,17 @@ void PrintRule(int offset)
     } while ((A&128)==0);
     printf("\n");
 }
+
+
+void PrintBuffer(const char* buffer, int size) {
+    printf("%d|", size);
+    
+    for (int i = 0; i < size; i++) {
+        if (i != 0) {
+            printf(",");
+        }
+        printf("%d",buffer[i]);
+    }
+    
+    printf("\n");
+}
