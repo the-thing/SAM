@@ -6,6 +6,7 @@
 #include "RenderTabs.h"
 
 #include "debug.h"
+#include "sam.h"
 extern int debug;
 
 unsigned char wait1 = 7;
@@ -68,10 +69,14 @@ void Output8BitAry(int index, unsigned char ary[5])
 {
     int k;
     bufferpos += timetable[oldtimetableindex][index];
+    
     oldtimetableindex = index;
+    
     // write a little bit in advance
-    for(k=0; k<5; k++)
+    for(k=0; k<5; k++) {
+        // printf("Output8BitAry, index: %d, value: %d\n", bufferpos / 50 + k, ary[k]);
         buffer[bufferpos/50 + k] = ary[k];
+    }
 }
 void Output8Bit(int index, unsigned char A)
 {
@@ -245,13 +250,17 @@ pos48280:
         X = mem53;
         //mem[54296] = X;
         // output the byte
-        Output8Bit(1, (X&0x0f) * 16);
+        unsigned char value = (X&0xf)*16;
+        // printf("render unvoiced 1 %d\n", value);
+        Output8Bit(1, value);
         // if X != 0, exit loop
         if(X != 0) goto pos48296;
     }
 
     // output a 5 for the on bit
-    Output8Bit(2, 5 * 16);
+    unsigned char value = 5 * 16;
+    // printf("render unvoiced 2 %d\n", value);
+    Output8Bit(2, value);
 
     //48295: NOP
 pos48296:
@@ -308,13 +317,17 @@ pos48315:
             {
                 // if bit set, output 26
                 X = 26;
-                Output8Bit(3, (X&0xf)*16);
+                unsigned char value = (X&0xf)*16;
+                // printf("value1: %d\n", value);
+                Output8Bit(3, value);
             } else
             {
                 //timetable 4
                 // bit is not set, output a 6
                 X=6;
-                Output8Bit(4, (X&0xf)*16);
+                unsigned char value = (X&0xf)*16;
+                // printf("value2: %d\n", value);
+                Output8Bit(4, value);
             }
 
             mem56--;
@@ -704,10 +717,10 @@ do
             X = mem40; // number of frames to interpolate over
             Y = phase3; // starting frame
 
-            // if (mem47 == 169) {
-            //     printf("startFrame=%d,endFrame=%d,interpolationLength=%d\n", phase3, speedcounter, mem40);
-            //     printf("deltaFraction=%d,deltaStep=%d,deltaSign=%d\n",mem51, mem53, mem50);
-            // }
+            if (mem47 == 168) {
+                printf("startFrame=%d,endFrame=%d,interpolationLength=%d\n", phase3, speedcounter, mem40);
+                printf("deltaFraction=%d,deltaStep=%d,deltaSign=%d\n",mem51, mem53, mem50);
+            }
             
             // linearly interpolate values
 
@@ -756,8 +769,8 @@ do
     mem48 = mem49 + phonemeLengthOutput[mem44];
 
     // printf("AFTER CREATE TRANSITIONS\n");
-    // PrintOutputSize(frameCount, sampledConsonantFlag, frequency1, frequency2, frequency3, amplitude1, amplitude2, amplitude3, pitches);
-    PrintOutputLine(frameCount, sampledConsonantFlag, frequency1, frequency2, frequency3, amplitude1, amplitude2, amplitude3, pitches);
+    PrintOutputSize(frameCount, sampledConsonantFlag, frequency1, frequency2, frequency3, amplitude1, amplitude2, amplitude3, pitches);
+    // PrintOutputLine(frameCount, sampledConsonantFlag, frequency1, frequency2, frequency3, amplitude1, amplitude2, amplitude3, pitches);
     // PrintOutput(sampledConsonantFlag, frequency1, frequency2, frequency3, amplitude1, amplitude2, amplitude3, pitches);
     
     
@@ -778,6 +791,11 @@ do
             pitches[i] -= (frequency1[i] >> 1);
         }
     }
+    
+    // printf("AFTER PITCH CONTOUR\n");
+    // PrintOutputSize(frameCount, sampledConsonantFlag, frequency1, frequency2, frequency3, amplitude1, amplitude2, amplitude3, pitches);
+    // PrintOutputLine(frameCount, sampledConsonantFlag, frequency1, frequency2, frequency3, amplitude1, amplitude2, amplitude3, pitches);
+    // PrintOutput(sampledConsonantFlag, frequency1, frequency2, frequency3, amplitude1, amplitude2, amplitude3, pitches);
 
     phase1 = 0;
     phase2 = 0;
@@ -787,9 +805,8 @@ do
 
 // RESCALE AMPLITUDE
 //
-// Rescale volume from a linear scale to decibels.
-//
-
+// Rescale volume from a linear scale to decibels.  
+  
     //amplitude rescaling
     for(i=255; i>=0; i--)
     {
@@ -804,6 +821,11 @@ do
     X = A;
     mem38 = A - (A>>2);     // 3/4*A ???
 
+    // printf("AFTER RESCALE AMPLITUDE\n");
+    // PrintOutputSize(frameCount, sampledConsonantFlag, frequency1, frequency2, frequency3, amplitude1, amplitude2, amplitude3, pitches);
+    // PrintOutputLine(frameCount, sampledConsonantFlag, frequency1, frequency2, frequency3, amplitude1, amplitude2, amplitude3, pitches);
+    // PrintOutput(sampledConsonantFlag, frequency1, frequency2, frequency3, amplitude1, amplitude2, amplitude3, pitches);
+    
 if (debug)
 {
     PrintOutput(sampledConsonantFlag, frequency1, frequency2, frequency3, amplitude1, amplitude2, amplitude3, pitches);
@@ -818,20 +840,27 @@ if (debug)
 // To simulate them being driven by the glottal pulse, the waveforms are
 // reset at the beginning of each glottal pulse.
 
+    // printf("glotal pulse %d\n", mem44);
+    
     //finally the loop for sound output
     //pos48078:
     while(1)
     {
         // get the sampled information on the phoneme
-        A = sampledConsonantFlag[Y];
+        A = sampledConsonantFlag[Y]; 
         mem39 = A;
 
         // unvoiced sampled phoneme?
         A = A & 248;
+        
         if(A != 0)
         {
             // render the sample for the phoneme
+            // printf("render unvoiced\n");
+            
+            // printf("glottal pulse counter before: %d\n", mem44);
             RenderSample(&mem66);
+            // printf("glottal pulse counter after: %d\n", mem44);
 
             // skip ahead two in the phoneme buffer
             Y += 2;
@@ -845,12 +874,12 @@ if (debug)
             unsigned int p3 = phase3 * 256;
             int k;
             for (k=0; k<5; k++) {
-                signed char sp1 = (signed char)sinus[0xff & (p1>>8)];
-                signed char sp2 = (signed char)sinus[0xff & (p2>>8)];
-                signed char rp3 = (signed char)rectangle[0xff & (p3>>8)];
-                signed int sin1 = sp1 * ((unsigned char)amplitude1[Y] & 0x0f);
-                signed int sin2 = sp2 * ((unsigned char)amplitude2[Y] & 0x0f);
-                signed int rect = rp3 * ((unsigned char)amplitude3[Y] & 0x0f);
+                signed char sp1 = sinus[0xff & p1>>8];
+                signed char sp2 = sinus[0xff & p2>>8];
+                signed char rp3 = (signed char)rectangle[0xff & p3>>8];
+                signed int sin1 = sp1 * (amplitude1[Y] & 0x0f);
+                signed int sin2 = sp2 * (amplitude2[Y] & 0x0f);
+                signed int rect = rp3 * (amplitude3[Y] & 0x0f);
                 signed int mux = sin1 + sin2 + rect;
                 mux /= 32;
                 mux += 128; // Go from signed to unsigned amplitude
@@ -859,8 +888,12 @@ if (debug)
                 p2 += frequency2[Y] * 256 / 4;
                 p3 += frequency3[Y] * 256 / 4;
             }
+            
+            // printf("Array %d %d %d %d %d\n", ary[0], ary[1], ary[2], ary[3], ary[4]);
+            
             // output the accumulated value
             Output8BitAry(0, ary);
+            
             speedcounter--;
             if (speedcounter != 0) goto pos48155;
             Y++; //go to next amplitude
@@ -870,7 +903,11 @@ if (debug)
         }
 
         // if the frame count is zero, exit the loop
-        if(mem48 == 0)  return;
+        if(mem48 == 0) {
+            // printf("Buffer END\n");
+            // PrintBuffer(GetBuffer(), GetBufferLength() / 50);
+            return;
+        }
         speedcounter = speed;
 pos48155:
 
@@ -911,6 +948,7 @@ pos48159:
         // voiced sampled phonemes interleave the sample with the
         // glottal pulse. The sample flag is non-zero, so render
         // the sample for the phoneme.
+        // printf("render voiced\n");
         RenderSample(&mem66);
         goto pos48159;
     } //while
@@ -940,7 +978,10 @@ void AddInflection(unsigned char mem48, unsigned char phase1)
 
     // FIXME: Explain this fix better, it's not obvious
     // ML : A =, fixes a problem with invalid pitch with '.'
-    while( (A=pitches[X]) == 127) X++;
+    while( (A=pitches[X]) == 127) {
+        printf("funky!");
+        X++;
+    }
 
 
 pos48398:
@@ -997,6 +1038,18 @@ void SetMouthThroat(unsigned char mouth, unsigned char throat)
     unsigned char throatFormants48_53[6] = {72, 39, 31, 43, 30, 34};
 
     unsigned char pos = 5; //mem39216
+    
+    // print
+    
+    for (int i = 0; i < 80; i++) {
+        // printf("%d,", freq2data[i]);
+    }
+    
+    // printf("\n");
+    
+    
+    
+    
 //pos38942:
     // recalculate formant frequencies 5..29 for the mouth (F1) and throat (F2)
     while(pos != 30)
@@ -1012,7 +1065,7 @@ void SetMouthThroat(unsigned char mouth, unsigned char throat)
         freq2data[pos] = newFrequency;
         pos++;
     }
-
+    
 //pos39059:
     // recalculate formant frequencies 48..53
     pos = 48;
@@ -1031,6 +1084,13 @@ void SetMouthThroat(unsigned char mouth, unsigned char throat)
         Y++;
         pos++;
     }
+    
+    for (int i = 0; i < 80; i++) {
+        // printf("%d,", freq2data[i]);
+    }
+    
+    // printf("\n");
+
 }
 
 
@@ -1051,10 +1111,6 @@ unsigned char trans(unsigned char mem39212, unsigned char mem39213)
         mem39212 = mem39212 >> 1;
         if (carry != 0)
         {
-            /*
-                        39018: LSR 39212
-                        39021: BCC 39033
-                        */
             carry = 0;
             A = mem39215;
             temp = (int)A + (int)mem39213;
@@ -1069,11 +1125,8 @@ unsigned char trans(unsigned char mem39212, unsigned char mem39213)
         X--;
     } while (X != 0);
     temp = mem39214 & 128;
-    mem39214 = (mem39214 << 1) | (carry?1:0);
     carry = temp;
-    temp = mem39215 & 128;
     mem39215 = (mem39215 << 1) | (carry?1:0);
-    carry = temp;
 
     return mem39215;
 }

@@ -405,6 +405,7 @@ void render_file(const char *filename) {
         printf("=");
         
         PrepareOutput();
+        PrintBuffer(GetBuffer(), GetBufferLength() / 50);
     }
 
     fclose(f);
@@ -417,8 +418,14 @@ int main(int argc, char **argv) {
     // print_phoneme();
     // batch_text_to_phonemes("sentences2.txt");
     
-    render_file("sam-word-list2.txt");
+    // render_file("sam-word-list3.txt");
+    
+    // SetPitch(5);
+    // SetMouth(230);
+    // SetThroat(240);
+    //
     // test_progress();
+
     
     return 0;
 }

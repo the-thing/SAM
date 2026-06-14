@@ -15,6 +15,7 @@ unsigned char throat = 128;
 int singmode = 0;
 
 extern int debug;
+extern unsigned int oldtimetableindex;
 
 unsigned char mem39;
 unsigned char mem44;
@@ -91,8 +92,10 @@ void Init()
     SetMouthThroat( mouth, throat);
 
     bufferpos = 0;
+    oldtimetableindex = 0;
     // TODO, check for free the memory, 10 seconds of output should be more than enough
-    buffer = malloc(22050*10);
+    // buffer = malloc(22050*10);
+    buffer = calloc(22050*10, 1);
 
     /*
     freq2data = &mem[45136];
